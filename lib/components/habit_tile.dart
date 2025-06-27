@@ -12,9 +12,9 @@ class HabitTile extends StatelessWidget {
     super.key,
     required this.habitName,
     required this.habitCompleted,
-    this.onChanged,
-    this.settingsTapped,
-    this.deleteTapped,
+    required this.onChanged,
+    required this.settingsTapped,
+    required this.deleteTapped,
   });
 
   @override
@@ -25,58 +25,52 @@ class HabitTile extends StatelessWidget {
         endActionPane: ActionPane(
           motion: const StretchMotion(),
           children: [
-            if (settingsTapped != null)
-              SlidableAction(
-                onPressed: settingsTapped!,
-                backgroundColor: Colors.grey.shade700,
-                foregroundColor: Colors.white,
-                icon: Icons.edit,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            if (deleteTapped != null)
-              SlidableAction(
-                onPressed: deleteTapped!,
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                borderRadius: BorderRadius.circular(12),
-              ),
+            // Tombol Edit
+            SlidableAction(
+              onPressed: settingsTapped!,
+              backgroundColor: Colors.grey.shade800,
+              foregroundColor: Colors.amberAccent, // Warna ikon edit
+              icon: Icons.edit,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            // Tombol Delete
+            SlidableAction(
+              onPressed: deleteTapped!,
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.yellowAccent, // Warna ikon delete
+              icon: Icons.delete,
+              borderRadius: BorderRadius.circular(12),
+            ),
           ],
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 5,
-                offset: const Offset(0, 3),
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 6,
+                offset: const Offset(2, 4),
               ),
             ],
           ),
           child: Row(
             children: [
-              // Checkbox dengan tema gelap
               Theme(
                 data: Theme.of(context).copyWith(
-                  unselectedWidgetColor: Colors.white70,
+                  unselectedWidgetColor: Colors.white,
                 ),
                 child: Checkbox(
                   value: habitCompleted,
                   onChanged: onChanged,
                   activeColor: Colors.white,
                   checkColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
                 ),
               ),
               const SizedBox(width: 10),
-
-              // Nama kebiasaan
               Expanded(
                 child: Text(
                   habitName,
