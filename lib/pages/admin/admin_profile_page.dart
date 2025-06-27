@@ -62,9 +62,28 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   onPressed: () async {
-                    await user!.delete();
-                    Navigator.pop(context);
-                    Navigator.pop(context);
+                    if (user != null) {
+                      final boxName = 'habits_${user!.username}';
+
+                      // Coba close hanya jika box terbuka dan bertipe Box<Habit>
+                      if (Hive.isBoxOpen(boxName)) {
+                        final box = Hive.box(boxName);
+                        // Hindari close jika box masih digunakan aktif oleh widget lain
+                        await box.close();
+                      }
+
+                      // Hapus box dari disk jika sudah tidak aktif
+                      if (await Hive.boxExists(boxName)) {
+                        await Hive.deleteBoxFromDisk(boxName);
+                      }
+
+                      // Hapus user dari box
+                      await user!.delete();
+                    }
+
+                    Navigator.pop(context); // tutup bottom sheet
+                    Navigator.pop(context); // kembali ke halaman sebelumnya
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Akun berhasil dihapus')),
                     );
@@ -96,8 +115,10 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text("Profile",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Profile",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
         centerTitle: false,
       ),
       body: Padding(
@@ -119,7 +140,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text(
                       user!.fullName,
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       user!.email,
@@ -134,7 +157,8 @@ class _ProfilePageState extends State<ProfilePage> {
               color: const Color(0xFFF6F8FA),
               elevation: 3,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Column(
                 children: [
                   _buildInfoRow("FULL NAME", user!.fullName, 'ic_avatar'),
@@ -155,10 +179,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Hapus akun",
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Hapus akun",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(
                         "Akun ini akan dihapus permanent\nTidak bisa diakses kembali.",
                         style: TextStyle(color: Colors.grey[700], fontSize: 12),

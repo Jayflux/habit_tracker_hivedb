@@ -30,37 +30,38 @@ class _HomePageState extends State<HomePage> {
   late Box<Habit> habitBox;
   List<Habit> todaysHabits = [];
 
+  late final String boxName;
+
   @override
   void initState() {
     super.initState();
+    boxName = 'habits_${widget.username}';
     openHabitBoxAndLoad();
   }
 
   Future<void> openHabitBoxAndLoad() async {
-    final boxName = 'habits_${widget.username}';
-
     if (!Hive.isBoxOpen(boxName)) {
       await Hive.openBox<Habit>(boxName);
     }
 
     habitBox = Hive.box<Habit>(boxName);
-    loadHabits();
+    await loadHabits();
   }
 
   Future<void> loadHabits() async {
     final todayStr = convertDateTimeToString(DateTime.now());
 
     final allHabits = habitBox.values
-        .where(
-          (habit) =>
-              habit.username == widget.username && habit.date == todayStr,
-        )
+        .where((habit) =>
+            habit.username == widget.username && habit.date == todayStr)
         .toList();
 
-    setState(() {
-      todaysHabits = allHabits;
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        todaysHabits = allHabits;
+        isLoading = false;
+      });
+    }
   }
 
   void checkBoxTapped(bool? value, int index) {
@@ -155,9 +156,7 @@ class _HomePageState extends State<HomePage> {
       if (habit.username != widget.username) continue;
 
       final date = DateTime.parse(habit.date);
-      if (!groupedHabits.containsKey(date)) {
-        groupedHabits[date] = [];
-      }
+      groupedHabits.putIfAbsent(date, () => []);
       groupedHabits[date]!.add(habit);
     }
 
@@ -172,6 +171,15 @@ class _HomePageState extends State<HomePage> {
     });
 
     return heatMapData;
+  }
+
+  @override
+  void dispose() {
+    if (Hive.isBoxOpen(boxName)) {
+      Hive.box<Habit>(boxName).close(); // pastikan box ditutup saat keluar
+    }
+    _newHabitNameController.dispose();
+    super.dispose();
   }
 
   @override

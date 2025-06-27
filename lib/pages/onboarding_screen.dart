@@ -29,7 +29,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Text(
-              'Lorem ipsum dolor sit amet \n take me back to the night we met',
+              'Keep track of your habits & achieve your goals.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

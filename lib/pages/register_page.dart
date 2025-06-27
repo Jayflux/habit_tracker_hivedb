@@ -66,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
       email: email,
       phoneNumber: phoneNumber,
       fullName: fullName,
-      role: 'user', // default role
+      role: 'user',
     );
 
     await userBox.add(newUser);
@@ -80,77 +80,88 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
-              child: Column(
-                children: [
-                  const SizedBox(height: 30),
-                  Image.asset('assets/habit.png', height: 100),
-                  const SizedBox(height: 30),
-                  Text(
-                    'Create an account',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      Image.asset('assets/habit.png', height: 100),
+                      const SizedBox(height: 30),
+                      Text(
+                        'Create an account',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                      ),
+                      const SizedBox(height: 20),
+                      MyTextField(
+                        controller: usernameController,
+                        hintText: 'Username',
+                        obscureText: false,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: emailController,
+                        hintText: 'Email',
+                        obscureText: false,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: phoneNumberController,
+                        hintText: 'Phone Number',
+                        obscureText: false,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: fullNameController,
+                        hintText: 'Full Name',
+                        obscureText: false,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: passwordController,
+                        hintText: 'Password',
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: confirmPasswordController,
+                        hintText: 'Confirm Password',
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 25),
+                      MyButton(onTap: () => registerUser(context)),
+                      const SizedBox(height: 30),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  MyTextField(
-                      controller: usernameController,
-                      hintText: 'Username',
-                      obscureText: false),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                      controller: emailController,
-                      hintText: 'Email',
-                      obscureText: false),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                      controller: phoneNumberController,
-                      hintText: 'Phone Number',
-                      obscureText: false),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                      controller: fullNameController,
-                      hintText: 'Full Name',
-                      obscureText: false),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                      controller: passwordController,
-                      hintText: 'Password',
-                      obscureText: true),
-                  const SizedBox(height: 10),
-                  MyTextField(
-                      controller: confirmPasswordController,
-                      hintText: 'Confirm Password',
-                      obscureText: true),
-                  const SizedBox(height: 25),
-                  MyButton(onTap: () => registerUser(context)),
-                  const SizedBox(height: 100),
-                ],
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Already have an account?',
-                      style: TextStyle(color: Colors.grey[700])),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                          color: Colors.blue, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account?',
+                      style: TextStyle(color: Colors.grey[700]),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                            color: Colors.blue, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );

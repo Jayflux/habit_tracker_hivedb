@@ -35,7 +35,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     if (user != null) {
       final boxName = 'habits_${user.username}';
 
-      // Tutup dan hapus box habit jika terbuka
       if (Hive.isBoxOpen(boxName)) {
         await Hive.box(boxName).close();
       }
@@ -46,6 +45,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
       await userBox.delete(userId);
       await fetchUsers();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('User ${user.username} dan semua datanya telah dihapus.'),
+        ),
+      );
     }
   }
 
@@ -144,14 +150,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                 size: 16, color: Colors.grey),
                           ],
                         ),
-                        onTap: () {
+                        onTap: () async {
                           if (userId != null) {
-                            Navigator.push(
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ProfilePage(userId: userId),
                               ),
                             );
+                            await fetchUsers(); // Tambahan: refresh saat kembali
                           }
                         },
                       ),
@@ -168,10 +175,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  // ================================
-  // DRAWER UNTUK ADMIN (GAYA CUSTOM)
-  // ================================
-
   Widget buildAdminDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.black,
@@ -181,78 +184,60 @@ class _AdminHomePageState extends State<AdminHomePage> {
           const SizedBox(height: 40),
           const Padding(
             padding: EdgeInsets.only(left: 15.0),
-            child: Icon(
-              Icons.admin_panel_settings,
-              size: 80,
-              color: Colors.white,
-            ),
+            child:
+                Icon(Icons.admin_panel_settings, size: 80, color: Colors.white),
           ),
           const SizedBox(height: 8),
           const Padding(
             padding: EdgeInsets.only(left: 15.0),
-            child: Text(
-              'Admin',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+            child: Text('Admin',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white)),
           ),
-          const Divider(
-            thickness: 2,
-            height: 30,
-            color: Colors.white24,
-          ),
+          const Divider(thickness: 2, height: 30, color: Colors.white24),
           drawerItem(
-            iconData: Icons.home,
-            label: 'Home',
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
+              iconData: Icons.home,
+              label: 'Home',
+              onTap: () => Navigator.pop(context)),
           drawerItem(
-            iconData: Icons.settings,
-            label: 'Settings',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Settings coming soon!")),
-              );
-            },
-          ),
+              iconData: Icons.settings,
+              label: 'Settings',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Settings coming soon!")),
+                );
+              }),
           drawerItem(
-            iconData: Icons.person_add,
-            label: 'Invite Friend',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Invite feature coming soon!")),
-              );
-            },
-          ),
+              iconData: Icons.person_add,
+              label: 'Invite Friend',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Invite feature coming soon!")),
+                );
+              }),
           drawerItem(
-            iconData: Icons.star,
-            label: 'Rate the App',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Rating feature coming soon!")),
-              );
-            },
-          ),
+              iconData: Icons.star,
+              label: 'Rate the App',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Rating feature coming soon!")),
+                );
+              }),
           drawerItem(
-            iconData: Icons.info_outline,
-            label: 'About Us',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("About page coming soon!")),
-              );
-            },
-          ),
+              iconData: Icons.info_outline,
+              label: 'About Us',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("About page coming soon!")),
+                );
+              }),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Colors.white24)),
-            ),
+                border: Border(top: BorderSide(color: Colors.white24))),
             child: GestureDetector(
               onTap: () {
                 Navigator.pushAndRemoveUntil(
@@ -283,10 +268,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }) {
     return ListTile(
       leading: Icon(iconData, color: Colors.white70),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 14, color: Colors.white),
-      ),
+      title: Text(label,
+          style: const TextStyle(fontSize: 14, color: Colors.white)),
       onTap: onTap,
     );
   }
