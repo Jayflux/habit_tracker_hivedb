@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:habit_tracker_hivedb/models/habit.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -42,16 +43,18 @@ class _HistoryPageState extends State<HistoryPage> {
     final sortedEntries = grouped.entries.toList()
       ..sort((a, b) => b.key.compareTo(a.key));
 
-    setState(() {
-      habitHistory = Map.fromEntries(sortedEntries);
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        habitHistory = Map.fromEntries(sortedEntries);
+        isLoading = false;
+      });
+    }
   }
 
   String formatDate(String dateStr) {
     try {
       final parsed = DateTime.parse(dateStr);
-      return DateFormat('EEEE, dd MMMM yyyy').format(parsed);
+      return DateFormat('EEEE, d MMMM yyyy').format(parsed);
     } catch (e) {
       return dateStr;
     }
@@ -59,92 +62,157 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.lightSurface;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('History', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('History & Streaks'),
       ),
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.black, Color(0xFF174E8F)],
-          ),
-        ),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : habitHistory.isEmpty
-                ? const Center(
-                    child: Text('No habit history.',
-                        style: TextStyle(color: Colors.white)),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
-                    children: habitHistory.entries.map((entry) {
-                      final date = formatDate(entry.key);
-                      final habits = entry.value;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.indigo,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              date,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white30),
-                            ),
-                            child: Column(
-                              children: habits.map((habit) {
-                                return Row(
-                                  children: [
-                                    Icon(
-                                      habit.completed
-                                          ? Icons.check_box
-                                          : Icons.check_box_outline_blank,
-                                      color: habit.completed
-                                          ? Colors.green
-                                          : Colors.grey,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        habit.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+              ),
+            )
+          : SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppTheme.maxContentWidth,
                   ),
-      ),
+                  child: habitHistory.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.history_toggle_off,
+                                  size: 48,
+                                  color: textSecondary,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No History Recorded Yet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Completed habits will appear here organized by date.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: textSecondary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : ListView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          children: habitHistory.entries.map((entry) {
+                            final dateLabel = formatDate(entry.key);
+                            final habits = entry.value;
+                            final completedCount = habits.where((h) => h.completed).length;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: surfaceColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                                border: Border.all(color: borderColor, width: 1),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          dateLabel,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: textPrimary,
+                                          ),
+                                        ),
+                                        Text(
+                                          '$completedCount of ${habits.length}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Divider(height: 1, color: borderColor),
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: habits.length,
+                                    separatorBuilder: (context, index) =>
+                                        Divider(height: 1, indent: 16, endIndent: 16, color: borderColor.withValues(alpha: 0.5)),
+                                    itemBuilder: (context, index) {
+                                      final habit = habits[index];
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              habit.completed
+                                                  ? Icons.check_circle
+                                                  : Icons.radio_button_unchecked,
+                                              size: 18,
+                                              color: habit.completed
+                                                  ? (isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark)
+                                                  : textSecondary,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                habit.name,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: habit.completed ? textPrimary : textSecondary,
+                                                  decoration: habit.completed
+                                                      ? TextDecoration.none
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                ),
+              ),
+            ),
     );
   }
 }

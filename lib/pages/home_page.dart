@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:habit_tracker_hivedb/components/custom_drawer.dart';
 import 'package:habit_tracker_hivedb/components/habit_tile.dart';
 import 'package:habit_tracker_hivedb/components/month_summary.dart';
@@ -7,6 +8,7 @@ import 'package:habit_tracker_hivedb/components/my_alert_box.dart';
 import 'package:habit_tracker_hivedb/components/my_fab.dart';
 import 'package:habit_tracker_hivedb/models/habit.dart';
 import 'package:habit_tracker_hivedb/datetime/date_time.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -29,7 +31,6 @@ class _HomePageState extends State<HomePage> {
 
   late Box<Habit> habitBox;
   List<Habit> todaysHabits = [];
-
   late final String boxName;
 
   @override
@@ -114,6 +115,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void openHabitSettings(int index) {
+    _newHabitNameController.text = todaysHabits[index].name;
     showDialog(
       context: context,
       builder: (context) {
@@ -176,7 +178,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     if (Hive.isBoxOpen(boxName)) {
-      Hive.box<Habit>(boxName).close(); // pastikan box ditutup saat keluar
+      Hive.box<Habit>(boxName).close();
     }
     _newHabitNameController.dispose();
     super.dispose();
@@ -184,96 +186,227 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.lightSurface;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
+
+    final completedCount = todaysHabits.where((h) => h.completed).length;
+    final totalCount = todaysHabits.length;
+    final completionRatio = totalCount == 0 ? 0.0 : completedCount / totalCount;
+
+    final formattedDate = DateFormat('EEEE, d MMMM').format(DateTime.now());
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: CustomDrawer(
         username: widget.username,
         userId: widget.userId,
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0, right: 8.0),
-        child: MyFloatingActionButton(onPressed: createNewHabit),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.black, Color(0xFF174E8F)],
-          ),
+      floatingActionButton: MyFloatingActionButton(onPressed: createNewHabit),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Open navigation menu',
+          onPressed: () => _scaffoldKey.currentState!.openDrawer(),
         ),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SafeArea(
-                child: Column(
-                  children: [
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      margin: const EdgeInsets.only(top: 8),
-                      child: IconButton(
-                        icon: const Icon(Icons.menu, color: Colors.white),
-                        onPressed: () =>
-                            _scaffoldKey.currentState!.openDrawer(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: ListView(
-                          padding: const EdgeInsets.only(bottom: 80),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              formattedDate,
+              style: TextStyle(
+                fontSize: 12,
+                color: textSecondary,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            Text(
+              'Habit Tracker',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: isDark ? AppTheme.logoAzure : AppTheme.logoCobalt,
+              ),
+            )
+          : SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AppTheme.maxContentWidth,
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                    children: [
+                      // Focal Point: Today's Progress Card
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                          border: Border.all(color: borderColor, width: 1),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 10),
-                            const Text(
-                              'Weekly Overview',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Daily Progress',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  '$completedCount of $totalCount completed',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? AppTheme.logoOrange : AppTheme.logoOrangeDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: completionRatio,
+                                minHeight: 8,
+                                backgroundColor: isDark
+                                    ? AppTheme.darkSurfaceElevated
+                                    : AppTheme.lightSurfaceElevated,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  isDark ? AppTheme.logoAzure : AppTheme.logoCobalt,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            MonthlySummary(
-                              datasets: generateHeatMapData(),
-                              startDate:
-                                  convertDateTimeToString(DateTime.now()),
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Today\'s Habits',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: todaysHabits.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 0),
-                              itemBuilder: (context, index) {
-                                final habit = todaysHabits[index];
-                                return HabitTile(
-                                  habitName: habit.name,
-                                  habitCompleted: habit.completed,
-                                  onChanged: (value) =>
-                                      checkBoxTapped(value, index),
-                                  settingsTapped: (context) =>
-                                      openHabitSettings(index),
-                                  deleteTapped: (context) => deleteHabit(index),
-                                );
-                              },
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 18),
+
+                      // Monthly Heatmap Overview
+                      MonthlySummary(
+                        datasets: generateHeatMapData(),
+                        startDate: convertDateTimeToString(DateTime.now()),
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // Section Title
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Today\'s Habits',
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Swipe right to manage',
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Habits List or Empty State (R-27)
+                      if (todaysHabits.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
+                          decoration: BoxDecoration(
+                            color: surfaceColor,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                            border: Border.all(color: borderColor, width: 1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.checklist_rtl_rounded,
+                                size: 40,
+                                color: isDark ? AppTheme.logoAzure : AppTheme.logoCobalt,
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'No habits scheduled for today',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: textPrimary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Build momentum one day at a time. Add your first habit for today.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 18),
+                              OutlinedButton.icon(
+                                onPressed: createNewHabit,
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('Add First Habit'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isDark ? AppTheme.logoAzure : AppTheme.logoCobalt,
+                                  side: BorderSide(
+                                    color: isDark ? AppTheme.logoAzure : AppTheme.logoCobalt,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusButton),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: todaysHabits.length,
+                          itemBuilder: (context, index) {
+                            final habit = todaysHabits[index];
+                            return HabitTile(
+                              habitName: habit.name,
+                              habitCompleted: habit.completed,
+                              onChanged: (value) => checkBoxTapped(value, index),
+                              settingsTapped: (context) => openHabitSettings(index),
+                              deleteTapped: (context) => deleteHabit(index),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
               ),
-      ),
+            ),
     );
   }
 }

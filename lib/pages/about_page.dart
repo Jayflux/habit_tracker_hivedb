@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class OurTeamPage extends StatelessWidget {
-  const OurTeamPage({Key? key}) : super(key: key);
+  const OurTeamPage({super.key});
 
   final List<TeamMember> members = const [
     TeamMember(
@@ -33,71 +34,107 @@ class OurTeamPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.lightSurface;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        title: const Text('Development Team'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.black, Color(0xFF174E8F)],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'OUR TEAM',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 30,
-                  color: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppTheme.maxContentWidth,
+            ),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'About This Project',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Habit Tracker HiveDB is designed to help users build and maintain positive daily routines with local-first, offline storage via Hive.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'This Is Our Team.',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white70,
+                const SizedBox(height: 20),
+                Text(
+                  'Project Contributors',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView.separated(
+                const SizedBox(height: 12),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: members.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
+                  separatorBuilder: (context, index) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final member = members[index];
                     return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 4,
-                            offset: const Offset(2, 3),
-                          ),
-                        ],
-                      ),
                       padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: surfaceColor,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                        border: Border.all(color: borderColor, width: 1),
+                      ),
                       child: Row(
                         children: [
-                          SquareTile(imagePath: member.imagePath),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              member.imagePath,
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                width: 56,
+                                height: 56,
+                                color: isDark
+                                    ? AppTheme.darkSurfaceElevated
+                                    : AppTheme.lightSurfaceElevated,
+                                child: Center(
+                                  child: Text(
+                                    member.name[0],
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
@@ -105,18 +142,18 @@ class OurTeamPage extends StatelessWidget {
                               children: [
                                 Text(
                                   member.name,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  member.id,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white60,
+                                  'NIM: ${member.id}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: textSecondary,
                                   ),
                                 ),
                               ],
@@ -127,8 +164,8 @@ class OurTeamPage extends StatelessWidget {
                     );
                   },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -146,26 +183,4 @@ class TeamMember {
     required this.id,
     required this.imagePath,
   });
-}
-
-class SquareTile extends StatelessWidget {
-  final String imagePath;
-
-  const SquareTile({
-    Key? key,
-    required this.imagePath,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Image.asset(
-        imagePath,
-        width: 80,
-        height: 80,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
 }

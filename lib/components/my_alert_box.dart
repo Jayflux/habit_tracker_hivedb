@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class MyAlertBox extends StatelessWidget {
   final TextEditingController controller;
@@ -16,45 +17,85 @@ class MyAlertBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEditing = hintText != "Enter Habit Name...";
+    final titleText = isEditing ? "Edit Habit" : "New Daily Habit";
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E), // Warna dasar gelap
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+        side: BorderSide(
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+          width: 1,
+        ),
+      ),
+      title: Text(
+        titleText,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+        ),
+      ),
       content: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white),
+        autofocus: true,
+        style: TextStyle(
+          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+          fontSize: 15,
+        ),
+        onSubmitted: (_) => onSave(),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[400]),
+          hintStyle: TextStyle(
+            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+          ),
           filled: true,
-          fillColor: Colors.black45,
+          fillColor: isDark ? AppTheme.darkSurfaceElevated : AppTheme.lightSurfaceElevated,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white24),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusInput),
+            borderSide: BorderSide(
+              color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusInput),
+            borderSide: BorderSide(
+              color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+              width: 2,
+            ),
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
         TextButton(
           onPressed: onCancel,
           style: TextButton.styleFrom(
-            foregroundColor: Colors.white,
+            foregroundColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusButton),
+            ),
           ),
           child: const Text("Cancel"),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: onSave,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF174E8F),
-            foregroundColor: Colors.white,
+          style: FilledButton.styleFrom(
+            backgroundColor: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+            foregroundColor: isDark ? Colors.black : Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppTheme.radiusButton),
             ),
           ),
-          child: const Text("Save"),
+          child: const Text(
+            "Save",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );

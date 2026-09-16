@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class MyFloatingActionButton extends StatelessWidget {
-  final Function()? onPressed;
+  final VoidCallback? onPressed;
 
   const MyFloatingActionButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return FloatingActionButton.extended(
       onPressed: onPressed,
-      backgroundColor: const Color(0xFF174E8F), // Biru utama
-      foregroundColor: Colors.white, // Ikon putih
+      backgroundColor: isDark ? AppTheme.logoOrangePrimary : AppTheme.logoCobalt,
+      foregroundColor: Colors.white,
+      elevation: 2,
+      highlightElevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusButton),
       ),
-      child: const Icon(Icons.add, size: 28),
+      icon: const Icon(Icons.add, size: 20),
+      label: const Text(
+        'New Habit',
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+      tooltip: 'Add new habit',
     );
   }
 }

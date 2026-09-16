@@ -46,14 +46,14 @@ class HabitDatabaseHive {
     if (exists) return false;
 
     await box.add(user);
-    await Hive.openBox<Habit>('${habitBoxPrefix}${user.username}');
+    await Hive.openBox<Habit>('$habitBoxPrefix${user.username}');
     return true;
   }
 
   // ================= HABITS =================
 
   Future<List<Habit>> loadHabits(String username, DateTime date) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     return habitBox.values.where((h) {
       final hDate = DateTime.parse(h.date);
       return hDate.year == date.year &&
@@ -63,23 +63,23 @@ class HabitDatabaseHive {
   }
 
   Future<void> addHabit(String username, Habit habit) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     await habitBox.add(habit);
   }
 
   Future<void> updateHabit(
       String username, int index, Habit updatedHabit) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     await habitBox.putAt(index, updatedHabit);
   }
 
   Future<void> deleteHabit(String username, int index) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     await habitBox.deleteAt(index);
   }
 
   Future<Map<String, List<Habit>>> getHabitHistory(String username) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     Map<String, List<Habit>> history = {};
 
     for (Habit h in habitBox.values) {
@@ -91,7 +91,7 @@ class HabitDatabaseHive {
   }
 
   Future<Map<String, List<Habit>>> getReminders(String username) async {
-    final habitBox = await Hive.openBox<Habit>('${habitBoxPrefix}$username');
+    final habitBox = await Hive.openBox<Habit>('$habitBoxPrefix$username');
     Map<String, List<Habit>> reminders = {};
 
     final now = DateTime.now();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:habit_tracker_hivedb/models/user.dart';
 import 'package:habit_tracker_hivedb/pages/onboarding_screen.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,16 +19,13 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> setupApp() async {
-    // Pastikan box users dibuka
     var userBox = await Hive.openBox<AppUser>('users');
 
-    // Tambahkan admin jika belum ada
     final adminExists = userBox.values.any(
       (user) => user.username == 'admin' && user.role == 'admin',
     );
 
     if (!adminExists) {
-      debugPrint('Menambahkan user admin...');
       await userBox.add(AppUser(
         username: 'admin',
         email: 'admin@gmail.com',
@@ -39,31 +37,63 @@ class _SplashScreenState extends State<SplashScreen> {
       ));
     }
 
-    // Delay untuk splash (2 detik)
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
-    // Navigasi ke onboarding
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => OnboardingScreen()),
+      MaterialPageRoute(builder: (_) => const OnboardingScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color.fromARGB(255, 255, 255, 255),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image(
-              image: AssetImage('assets/habit.png'),
-              width: 100,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/habit.png',
+                width: 90,
+                height: 90,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.eco_outlined,
+                    size: 40,
+                    color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 30),
-            CircularProgressIndicator(color: Colors.white),
+            const SizedBox(height: 24),
+            Text(
+              'Habit Tracker',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+              ),
+            ),
           ],
         ),
       ),

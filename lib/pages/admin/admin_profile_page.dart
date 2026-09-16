@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:habit_tracker_hivedb/models/user.dart';
+import 'package:habit_tracker_hivedb/theme/app_theme.dart';
 
 class ProfilePage extends StatefulWidget {
   final int userId;
@@ -30,71 +31,86 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showDeleteConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          height: 150,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                'Hapus permanent akun user?',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Delete User Account',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                const SizedBox(height: 8),
+                Text(
+                  'This will permanently delete ${user?.username}\'s profile and all their tracked habit data. This action cannot be undone.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.danger,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusButton),
                     ),
                   ),
                   onPressed: () async {
                     if (user != null) {
                       final boxName = 'habits_${user!.username}';
 
-                      // Coba close hanya jika box terbuka dan bertipe Box<Habit>
                       if (Hive.isBoxOpen(boxName)) {
                         final box = Hive.box(boxName);
-                        // Hindari close jika box masih digunakan aktif oleh widget lain
                         await box.close();
                       }
 
-                      // Hapus box dari disk jika sudah tidak aktif
                       if (await Hive.boxExists(boxName)) {
                         await Hive.deleteBoxFromDisk(boxName);
                       }
 
-                      // Hapus user dari box
                       await user!.delete();
                     }
 
-                    Navigator.pop(context); // tutup bottom sheet
-                    Navigator.pop(context); // kembali ke halaman sebelumnya
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Akun berhasil dihapus')),
+                    navigator.pop();
+                    navigator.pop();
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Account permanently removed')),
                     );
                   },
-                  child: const Text(
-                    'Hapus',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  child: const Text('Delete Account Permanently'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -103,126 +119,161 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.lightSurface;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
+
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+          ),
+        ),
+      );
     }
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          "Profile",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: false,
+        title: const Text('User Profile'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Row(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppTheme.maxContentWidth),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: const Color(0xFFD3EBFD),
-                  child: Image.asset('assets/avatar.png'),
-                ),
-                const SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user!.fullName,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      user!.email,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            Card(
-              color: const Color(0xFFF6F8FA),
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  _buildInfoRow("FULL NAME", user!.fullName, 'ic_avatar'),
-                  _buildInfoRow("EMAIL", user!.email, 'ic_email'),
-                  _buildInfoRow("PHONE NUMBER", user!.phoneNumber, 'ic_phone'),
-                  _buildInfoRow("ROLE", user!.role, 'ic_avatar'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-            const Divider(thickness: 2),
-            GestureDetector(
-              onTap: _showDeleteConfirmationDialog,
-              child: Row(
-                children: [
-                  const Icon(Icons.delete_outline, color: Colors.black),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                  child: Row(
                     children: [
-                      const Text(
-                        "Hapus akun",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor: isDark
+                            ? AppTheme.darkSurfaceElevated
+                            : AppTheme.lightSurfaceElevated,
+                        child: Text(
+                          user!.username.isNotEmpty ? user!.username[0].toUpperCase() : 'U',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppTheme.emeraldPrimary : AppTheme.emeraldDark,
+                          ),
                         ),
                       ),
-                      Text(
-                        "Akun ini akan dihapus permanent\nTidak bisa diakses kembali.",
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      const SizedBox(width: 18),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user!.fullName.isNotEmpty ? user!.fullName : user!.username,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              user!.email,
+                              style: TextStyle(fontSize: 13, color: textSecondary),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  const Icon(Icons.arrow_forward_ios,
-                      color: Colors.grey, size: 16),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildInfoRow('Full Name', user!.fullName, Icons.badge_outlined),
+                      Divider(height: 1, color: borderColor),
+                      _buildInfoRow('Username', user!.username, Icons.person_outline),
+                      Divider(height: 1, color: borderColor),
+                      _buildInfoRow('Email Address', user!.email, Icons.email_outlined),
+                      Divider(height: 1, color: borderColor),
+                      _buildInfoRow('Phone Number', user!.phoneNumber, Icons.phone_outlined),
+                      Divider(height: 1, color: borderColor),
+                      _buildInfoRow('Account Role', user!.role, Icons.security_outlined),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusCard),
+                    border: Border.all(color: borderColor, width: 1),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: const Icon(Icons.delete_forever_outlined, color: AppTheme.danger),
+                    title: const Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        color: AppTheme.danger,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Permanently remove user and all associated habit tracking history.',
+                      style: TextStyle(color: textSecondary, fontSize: 12),
+                    ),
+                    onTap: _showDeleteConfirmationDialog,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, String iconAsset) {
+  Widget _buildInfoRow(String label, String value, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
-          Image.asset('assets/$iconAsset.png', width: 32),
-          const SizedBox(width: 15),
+          Icon(icon, size: 20, color: textSecondary),
+          const SizedBox(width: 14),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-              const SizedBox(height: 4),
               Text(
-                value,
-                style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500),
+                label,
+                style: TextStyle(color: textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value.isNotEmpty ? value : 'Not provided',
+                style: TextStyle(
+                  color: textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
